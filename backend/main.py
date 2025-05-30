@@ -27,16 +27,19 @@ async def generate_docs(
     file: UploadFile = File(None),
     github_url: str = Form(None)
 ):
-    # Handle GitHub URL cloning or ZIP upload
-    if github_url:
-        folder_path = clone_repo(github_url)
-    elif file:
-        folder_path = save_and_extract_zip(file)
-    else:
-        return {"error": "No input provided"}
+    try:
+        if github_url:
+            folder_path = clone_repo(github_url)
+        elif file:
+            folder_path = save_and_extract_zip(file)
+        else:
+            return {"error": "No input provided"}
 
-    # Extract and process code
-    code_text = extract_code_from_folder(folder_path)
-    documentation = generate_documentation(code_text)
+        code_text = extract_code_from_folder(folder_path)
 
-    return {"markdown": documentation}
+        documentation = generate_documentation(code_text)
+
+        return {"markdown": documentation}
+    except Exception as e:
+        print("❌ ERROR:", e)
+        return {"error": str(e)}
