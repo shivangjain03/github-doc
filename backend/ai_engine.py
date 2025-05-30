@@ -1,6 +1,10 @@
 import openai
 import os
+from dotenv import load_dotenv
 
+
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def generate_documentation(code_text: str) -> str:
     prompt = f"""
@@ -27,7 +31,7 @@ The codebase is:
     """
 
     response = openai.ChatCompletion.create(
-        model="gpt-4",
+        model="gpt-3.5-turbo",
         messages=[
             {"role": "user", "content": prompt}
         ],

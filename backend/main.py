@@ -1,19 +1,21 @@
 # backend/main.py
 
-from fastapi import FastAPI, UploadFile, File, Form
+from fastapi import FastAPI, UploadFile, File, Form, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import os
 import uuid
 from datetime import datetime
-
+from fastapi.security import OAuth2PasswordRequestForm
+from auth_utils import authenticate_user, create_access_token, verify_token
 from zip_utils import save_and_extract_zip, extract_code_from_folder
 from git_utils import clone_repo
 from ai_engine import generate_documentation
 from export_utils import export_to_pdf, export_to_docx, export_to_md
 from github_push_utils import push_docs_to_github
-from db_utils import init_db, log_session  # 🆕 added import
+from db_utils import init_db, log_session 
 import traceback
+
 
 
 app = FastAPI()
@@ -37,7 +39,8 @@ async def startup_event():
 @app.post("/generate-docs/")
 async def generate_docs(
     file: UploadFile = File(None),
-    github_url: str = Form(None)
+    github_url: str = Form(None),
+    current_user: str = Depends(verify_token)
 ):
     request_id = str(uuid.uuid4())  # 🆕 generate unique request ID
     try:
@@ -91,9 +94,14 @@ async def push_docs(
     github_token: str = Form(...),
     repo_name: str = Form(...),
     branch: str = Form("main"),
-    path: str = Form("docs.md")
+    path: str = Form("docs.md"),
+    current_user: str = Depends(verify_token)
 ):
-    request_id = str(uuid.uuid4())  # 🆕 unique request ID
+    
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="You do not have permission to push docs")
+    
+    request_id = str(uuid.uuid4())
     try:
         with open("uploads/output.md", "r") as f:
             markdown_text = f.read()
@@ -112,3 +120,11 @@ async def push_docs(
 
         log_session(request_id, repo_name, "push_error", datetime.utcnow().isoformat(), str(e))
         return {"error": str(e), "request_id": request_id}
+
+@app.post("/token")
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    if not authenticate_user(form_data.username, form_data.password):
+        raise HTTPException(status_code=400, detail="Invalid credentials")
+
+    token = create_access_token(data={"sub": form_data.username})
+    return {"access_token": token, "token_type": "bearer"}
