@@ -4,3 +4,5 @@ openai
 python-multipart
 aiofiles
 GitPython
+PyGithub
+
