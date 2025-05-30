@@ -15,10 +15,16 @@ from export_utils import export_to_pdf, export_to_docx, export_to_md
 from github_push_utils import push_docs_to_github
 from db_utils import init_db, log_session 
 import traceback
+import zipfile
+from db_utils import get_latest_version, insert_project_version, log_session, create_version_table  # ✅ version control
+
+
 
 
 
 app = FastAPI()
+
+
 
 # Enable CORS for frontend testing
 app.add_middleware(
@@ -31,10 +37,14 @@ app.add_middleware(
 
 # Ensure upload directory exists
 os.makedirs("uploads", exist_ok=True)
+os.makedirs("projects", exist_ok=True)
+
 
 @app.on_event("startup")
 async def startup_event():
     init_db()  # 🆕 initialize DB on startup
+    create_version_table()  # ✅ Create version table on boot
+    os.makedirs("projects", exist_ok=True)  # Folder to store project versions
 
 @app.post("/generate-docs/")
 async def generate_docs(
@@ -47,14 +57,33 @@ async def generate_docs(
         # Handle GitHub URL cloning or ZIP upload
         if github_url:
             print("🔗 Cloning from GitHub...")
-            folder_path = clone_repo(github_url)
+            repo_name = github_url.rstrip("/").split("/")[-2] + "/" + github_url.rstrip("/").split("/")[-1]
+            version = get_latest_version(repo_name) + 1
+            folder_name = repo_name.replace("/", "-")
+            folder_path = f"projects/{folder_name}/v{version}"
+            os.makedirs(folder_path, exist_ok=True)
+            cloned_path = clone_repo(github_url)
+            os.system(f"cp -r {cloned_path}/* {folder_path}")
+            insert_project_version(repo_name, version)
             source = github_url
+
         elif file:
             print("📦 Extracting ZIP file...")
-            folder_path = save_and_extract_zip(file)
+            repo_name = file.filename.replace(".zip", "")
+            version = get_latest_version(repo_name) + 1
+            folder_path = f"projects/{repo_name}/v{version}"
+            os.makedirs(folder_path, exist_ok=True)
+            zip_path = f"uploads/{file.filename}"
+            with open(zip_path, "wb") as f:
+                f.write(await file.read())
+            with zipfile.ZipFile(zip_path, 'r') as zip_ref:
+                zip_ref.extractall(folder_path)
+            insert_project_version(repo_name, version)
             source = file.filename
+
         else:
             return {"error": "No input provided"}
+
 
         # Extract and process code
         print("📂 Parsing code files...")

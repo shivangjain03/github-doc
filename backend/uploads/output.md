@@ -1,65 +1,51 @@
 ## 🎯 Overall Project Purpose
-The project aims to analyze a multi-language codebase along with existing documentation to generate comprehensive documentation in Markdown format. It involves fetching code from various files, processing it, and using AI models to generate detailed documentation.
+The project aims to analyze a multi-language codebase along with existing documentation to generate comprehensive documentation formatted as a Markdown file. It involves fetching code from various files, processing it, and utilizing AI models to create detailed documentation.
 
 ## 🧩 Module-Level Summaries
 1. **index.html**: Contains the basic HTML structure for the project's frontend.
 2. **tailwind.config.js**: Configures Tailwind CSS settings for the project.
-3. **vite.config.js**: Configuration file for Vite, a frontend build tool.
+3. **vite.config.js**: Configures Vite build tool settings for the project.
 4. **postcss.config.js**: Configures PostCSS plugins for the project.
-5. **app.py**: Python script to analyze codebase, fetch existing documentation, and generate comprehensive documentation using AI.
+5. **app.py**: Python script for analyzing codebase and generating documentation.
 6. **activate_venv.py**: Python script to activate a virtual environment.
-7. **main.py**: FastAPI script to interact with the frontend and generate documentation based on user input.
-8. **index.css**: Contains Tailwind CSS styles for the project.
-9. **classNames.js**: Utility function to join CSS class names conditionally.
-10. **supabase.js**: Sets up a Supabase client for interacting with a database.
+7. **main.py**: FastAPI script for handling API requests and generating documentation.
+8. **index.css**: CSS file for styling the project.
+9. **classNames.js**: Utility function for joining CSS class names.
+10. **supabase.js**: Handles interactions with Supabase for database operations.
 
 ## 🧠 Code Logic and Workflows
-- **app.py**: Reads existing documentation and code files, chunks them, and creates prompts for AI documentation generation.
-- **activate_venv.py**: Activates a virtual environment based on the OS.
-- **main.py**: FastAPI script to handle API requests for generating documentation based on user input.
-- **supabase.js**: Sets up a client for interacting with a Supabase database.
+The `app.py` script reads code files, chunks them, and combines with existing documentation. It then uses an AI model to generate comprehensive documentation. The `main.py` script uses FastAPI to handle API requests for generating documentation based on GitHub repositories. The `generate_documentation` endpoint fetches code from repositories, processes it, and generates documentation using AI models.
 
 ## 📊 Workflow Diagrams
 ```mermaid
-graph LR
-A[Existing Documentation] --> B{Generate Documentation}
-C[Codebase Files] --> B
-B --> D[AI Documentation Generation]
-D --> E[Final Comprehensive Documentation]
+sequenceDiagram
+    participant User
+    participant FastAPI
+    participant AIModel
+    User->>FastAPI: Request to generate documentation
+    FastAPI->>AIModel: Utilize AI model for content generation
+    AIModel-->>FastAPI: Return generated documentation
+    FastAPI-->>User: Provide generated documentation
 ```
 
 ## 🗂️ Architecture Diagram
-```
-Project Structure:
-- frontend/
-  - index.html
-  - index.css
-- backend/
-  - app.py
-  - main.py
-- scripts/
-  - activate_venv.py
-- config/
-  - tailwind.config.js
-  - vite.config.js
-  - postcss.config.js
-- utils/
-  - classNames.js
-- database/
-  - supabase.js
-```
+The project architecture involves frontend (HTML/CSS), backend (FastAPI), AI model integration, and database operations with Supabase.
 
 ## 🧬 Service/API Dependency Diagrams
-```
-User Request --> main.py --> AI Model --> Generate Documentation
+```mermaid
+graph TD;
+    User-->Frontend;
+    Frontend-->FastAPI;
+    FastAPI-->AIModel;
+    FastAPI-->Supabase;
 ```
 
 ## 🛠️ Database ER Diagrams
-No database schema or ORM found in the provided codebase.
+No explicit database schema or ORM found in the provided codebase.
 
 ## 💡 Best Practices & Improvement Suggestions
-- Implement error handling for API requests and file operations in a more robust manner.
-- Consider adding unit tests to ensure the functionality of different modules.
-- Document codebase with inline comments for better understanding.
-- Use consistent coding style and naming conventions across all files.
-- Optimize code for better performance, especially in data processing tasks.
+- Implement error handling for API requests and file operations.
+- Enhance documentation with more detailed explanations of functions and components.
+- Use consistent coding styles and naming conventions across files.
+- Consider adding unit tests for critical functionalities.
+- Include more detailed architecture diagrams for better understanding.
